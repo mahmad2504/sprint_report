@@ -27,9 +27,11 @@ arg_desc = '''\
         '''
         
 parser = argparse.ArgumentParser(formatter_class = argparse.RawDescriptionHelpFormatter,description= arg_desc)
-parser.add_argument('target',   help='build, package, debug , run')
+parser.add_argument('target',   help='build, package, debug , run, info')
 parser.add_argument('--sprint',   help='sprint name required for debug and run command')
 parser.add_argument('--verbose',   action='store_true', help='sprint name required for debug and run command')
+
+
 
 args = parser.parse_args()
 
@@ -44,6 +46,10 @@ def mprint(message,force=0):
 match args.target:
     case 'build':
         cmd=f'docker   build . --build-arg COMMIT={p["commit"]} --build-arg CODE_REPOSITORY={p["code_repository"]} -t {p["image_name"]}'
+        mprint(cmd)
+        os.system(cmd)
+    case 'info':
+        cmd=f'git rev-parse --verify HEAD'
         mprint(cmd)
         os.system(cmd)
     case 'package':
