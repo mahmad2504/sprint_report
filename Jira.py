@@ -227,7 +227,23 @@ class Jira:
                 sprint["completeDate"]=datetime.strptime(sprint["completeDate"], '%Y-%m-%d %H:%M:%S')
             
         return output
-        
+    def GetSprintById(self, sprintId):
+        url = self.url+f"/rest/agile/1.0/sprint/{sprintId}"
+        response = requests.request(
+                "GET",
+                url,
+                headers=self.headers,
+                params={
+                    "sprintId":sprintId
+                },
+                auth=self.auth,
+                verify=False,
+            )
+        data=json.loads(response.text)
+        if 'errorMessages' in data:
+            return None
+        print(data)
+
     def Search(self,jql,fields=None,expand=[]):
 
         if fields==None:

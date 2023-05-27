@@ -1,2 +1,0 @@
-docker tag sprint_report:latest harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps/sprint_report:latest
-docker push harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps/sprint_report:latest

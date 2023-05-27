@@ -28,7 +28,8 @@ arg_desc = '''\
         
 parser = argparse.ArgumentParser(formatter_class = argparse.RawDescriptionHelpFormatter,description= arg_desc)
 parser.add_argument('target',   help='build, release, generate, info, version')
-parser.add_argument('--sprint',   help='sprint name required for debug and run command')
+parser.add_argument('--sprint',   help='sprint name required for generate command')
+parser.add_argument('--board',   help='board  required for generate  command')
 parser.add_argument('--verbose',   action='store_true', help='')
 parser.add_argument('--dev',   action='store_true', help='')
 
@@ -115,20 +116,20 @@ match args.target:
             print(f'Commit:{commit}')
             
     case 'generate':
-        if args.sprint:
+        if args.sprint and args.board:
             if args.dev:
                 if source_code==0:
                     mprint("Source code not available. Unable to run this command",1)
                     sys.exit()
                 else:
-                    cmd=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest python3 main.py "{args.sprint}"'
+                    cmd=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest python3 main.py "{args.sprint}" {args.board}'
                     mprint(cmd)
                     os.system(cmd)
             else:
-                cmd=f'docker run -it --rm -w /src  {docker_registry}/{image_name}:latest python3 main.py "{args.sprint}"'
+                cmd=f'docker run -it --rm -w /src  {docker_registry}/{image_name}:latest python3 main.py "{args.sprint}" {args.board}'
                 mprint(cmd)
                 os.system(cmd)
         else:
-            mprint("sprint argument missing",1)
+            mprint("sprint or boardid  missing",1)
 
 

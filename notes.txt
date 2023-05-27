@@ -4,7 +4,7 @@ python app.py version  --verbose
 python app.py build  --verbose
 python app.py release  --verbose
 
-python app.py generate --sprint "test sprint 2"  --verbose
-python app.py generate --sprint "test sprint 2" --dev --verbose
+python app.py generate --board 349 --sprint "test sprint 2"  --verbose
+python app.py generate --board 349 --sprint "test sprint 2" --dev --verbose
 
-sprint_report  generate --sprint "test sprint 2"
+sprint_report  generate --board 349 --sprint "test sprint 2"

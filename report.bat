@@ -1,1 +1,0 @@
-docker run -it --rm -w /src harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps/sprint_report:latest python3 main.py %1
