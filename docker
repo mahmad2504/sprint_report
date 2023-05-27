@@ -1,0 +1,5 @@
+
+D:\WorkRepository\sprint_report>docker run -it --rm -w /sprint_report harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps/sprint_report:latest python3 -it --rm 
+unknown option --rm
+usage: python3 [option] ... [-c cmd | -m mod | file | -] [arg] ...
+Try `python -h' for more information.

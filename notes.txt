@@ -1,0 +1,5 @@
+build
+run main.py "test_sprint_1"
+
+package
+report "test_sprint_1"
