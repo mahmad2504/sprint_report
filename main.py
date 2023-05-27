@@ -51,8 +51,6 @@ for issue in report["puntedIssues"]:
     print(issue["key"])
     
     
-f = open('parameters.json')
-    p = json.load(f)
-print(p)
+
 
 
