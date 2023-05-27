@@ -4,7 +4,7 @@ import argparse
 
 p={
 "image_name":"sprint_report",
-"commit":"df75a4a6dca5705ae9c724ffec37b7c2b2e85865",
+"commit":"main",
 "docker_registry":"harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps",
 "code_repository":"https://github.com/mahmad2504/sprint_report.git"
 }
@@ -46,8 +46,7 @@ def mprint(message,force=0):
 source_code=0
 if os.path.isfile("Dockerfile"):
    source_code=1
-
-
+        
 commit=p["commit"]         
 code_repository=p["code_repository"]
 docker_registry=p["docker_registry"]
@@ -65,13 +64,20 @@ match args.target:
         if source_code==0:
             mprint("Source code not available. Unable to run this command",1)
             sys.exit()
+        
+        cmd=f'git rev-parse --verify HEAD'
+        mprint(cmd)
+        commit=os.popen(cmd).read()
+        commit=commit.replace("\n","")
         mprint(f"Packaging for commit {commit}",1)
         cmd=f'git show -s --format=%B {commit}'
         mprint(cmd)
         os.system(cmd)
-        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg CODE_REPOSITORY={code_repository} -t {image_name}'
+        print(code_repository)
+        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg CODE_REPOSITORY={code_repository} --no-cache -t {image_name}'
         mprint(cmd)
         os.system(cmd)
+        
         cmd=f'docker tag {image_name}:latest {docker_registry}/{image_name}:latest'
         mprint(cmd)
         os.system(cmd)
@@ -81,6 +87,10 @@ match args.target:
         cmd=f'python -m PyInstaller app.py --onefile --name sprint_report'
         mprint(cmd)
         os.system(cmd)
+        
+        p["commit"]=commit
+        with open('parameters.json', 'w') as f:
+            json.dump(p, f)
             
     case 'info':
         if source_code==0:
@@ -88,8 +98,9 @@ match args.target:
             sys.exit()
         cmd=f'git rev-parse --verify HEAD'
         mprint(cmd)
-        os.system(cmd)
-        cmd=f'git show -s --format=%B {commit}'
+        commitid=os.popen(cmd).read()
+        print(commitid)
+        cmd=f'git show -s --format=%B {commitid}'
         mprint(cmd)
         os.system(cmd)
     case 'generate':
@@ -108,14 +119,5 @@ match args.target:
                 os.system(cmd)
         else:
             mprint("sprint argument missing",1)
-    case 'generate':
-        if os.path.isfile("app.py"):
-            cmd=f'python -m PyInstaller app.py --onefile --name sprint_report'
-            mprint(cmd)
-            os.system(cmd)
-        else:
-            mprint("Source code not available. Unable to run this command",1)
-            sys.exit()
-  
 
 
