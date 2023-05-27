@@ -27,10 +27,10 @@ arg_desc = '''\
         '''
         
 parser = argparse.ArgumentParser(formatter_class = argparse.RawDescriptionHelpFormatter,description= arg_desc)
-parser.add_argument('target',   help='build, package, debug , run, info')
+parser.add_argument('target',   help='build, package, generate , run, info, generate')
 parser.add_argument('--sprint',   help='sprint name required for debug and run command')
-parser.add_argument('--verbose',   action='store_true', help='sprint name required for debug and run command')
-
+parser.add_argument('--verbose',   action='store_true', help='')
+parser.add_argument('--dev',   action='store_true', help='')
 
 
 args = parser.parse_args()
@@ -42,36 +42,80 @@ def mprint(message,force=0):
     else:
         if args.verbose: 
             print(message)
-            
+
+source_code=0
+if os.path.isfile("Dockerfile"):
+   source_code=1
+
+
+commit=p["commit"]         
+code_repository=p["code_repository"]
+docker_registry=p["docker_registry"]
+image_name=p["image_name"]
+
 match args.target:
     case 'build':
-        cmd=f'docker   build . --build-arg COMMIT={p["commit"]} --build-arg CODE_REPOSITORY={p["code_repository"]} -t {p["image_name"]}'
+        if source_code==0:
+            mprint("Source code not available. Unable to run this command",1)
+            sys.exit()
+        cmd=f'docker   build . --build-arg COMMIT=main --build-arg CODE_REPOSITORY={code_repository} -t {image_name}'
         mprint(cmd)
         os.system(cmd)
+    case 'release':
+        if source_code==0:
+            mprint("Source code not available. Unable to run this command",1)
+            sys.exit()
+        mprint(f"Packaging for commit {commit}",1)
+        cmd=f'git show -s --format=%B {commit}'
+        mprint(cmd)
+        os.system(cmd)
+        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg CODE_REPOSITORY={code_repository} -t {image_name}'
+        mprint(cmd)
+        os.system(cmd)
+        cmd=f'docker tag {image_name}:latest {docker_registry}/{image_name}:latest'
+        mprint(cmd)
+        os.system(cmd)
+        cmd=f'docker push {docker_registry}/{image_name}:latest'
+        os.system(cmd)
+        
+        cmd=f'python -m PyInstaller app.py --onefile --name sprint_report'
+        mprint(cmd)
+        os.system(cmd)
+            
     case 'info':
+        if source_code==0:
+            mprint("Source code not available. Unable to run this command",1)
+            sys.exit()
         cmd=f'git rev-parse --verify HEAD'
         mprint(cmd)
         os.system(cmd)
-    case 'package':
-        cmd=f'docker tag {p["image_name"]}:latest {p["docker_registry"]}/{p["image_name"]}:latest'
+        cmd=f'git show -s --format=%B {commit}'
         mprint(cmd)
         os.system(cmd)
-        cmd=f'docker push {p["docker_registry"]}/{p["image_name"]}:latest'
-        os.system(cmd)
-    case 'debug':
+    case 'generate':
         if args.sprint:
-            cmd=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {p["image_name"]}:latest python3 main.py "{args.sprint}"'
+            if args.dev:
+                if source_code==0:
+                    mprint("Source code not available. Unable to run this command",1)
+                    sys.exit()
+                else:
+                    cmd=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest python3 main.py "{args.sprint}"'
+                    mprint(cmd)
+                    os.system(cmd)
+            else:
+                cmd=f'docker run -it --rm -w /src  {docker_registry}/{image_name}:latest python3 main.py "{args.sprint}"'
+                mprint(cmd)
+                os.system(cmd)
+        else:
+            mprint("sprint argument missing",1)
+    case 'generate':
+        if os.path.isfile("app.py"):
+            cmd=f'python -m PyInstaller app.py --onefile --name sprint_report'
             mprint(cmd)
             os.system(cmd)
         else:
-            mprint("sprint argument missing",1)
-    case 'run':
-        if args.sprint:
-            cmd=f'docker run -it --rm -w /src  {p["docker_registry"]}/{p["image_name"]}:latest python3 main.py "{args.sprint}"'
-            mprint(cmd)
-            os.system(cmd)
-        else:
-            mprint("sprint argument missing",1)
+            mprint("Source code not available. Unable to run this command",1)
+            sys.exit()
   
 
 

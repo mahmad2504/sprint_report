@@ -37,7 +37,7 @@ boardid=sprint['originBoardId']
 
 
 report=j.SprintReport(boardid,sprint_id)
-print(colored(f"Report-s:{sprint_name}", 'green'))
+print(colored(f"Report:{sprint_name}", 'green'))
 print(colored(f"Issues not completed in sprint", 'cyan'))
 
 
