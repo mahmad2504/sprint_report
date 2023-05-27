@@ -27,7 +27,7 @@ arg_desc = '''\
         '''
         
 parser = argparse.ArgumentParser(formatter_class = argparse.RawDescriptionHelpFormatter,description= arg_desc)
-parser.add_argument('target',   help='build, package, generate , run, info, generate')
+parser.add_argument('target',   help='build, release, generate, info, version')
 parser.add_argument('--sprint',   help='sprint name required for debug and run command')
 parser.add_argument('--verbose',   action='store_true', help='')
 parser.add_argument('--dev',   action='store_true', help='')
@@ -103,6 +103,11 @@ match args.target:
         cmd=f'git show -s --format=%B {commitid}'
         mprint(cmd)
         os.system(cmd)
+    case 'version':
+        f = open('parameters.json')
+        p = json.load(f)
+        print(f'Commit:{p["commit"]}')
+        
     case 'generate':
         if args.sprint:
             if args.dev:
