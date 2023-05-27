@@ -104,10 +104,16 @@ match args.target:
         mprint(cmd)
         os.system(cmd)
     case 'version':
-        f = open('parameters.json')
-        p = json.load(f)
-        print(f'Commit:{p["commit"]}')
-        
+        if args.dev:
+            f = open('parameters.json')
+            p = json.load(f)
+            print(f'Commit:{commit}')
+        else:
+            cmd=f'docker run -it --rm -w /src {docker_registry}/{image_name}:latest git rev-parse --verify HEAD'
+            mprint(cmd)
+            commit=os.popen(cmd).read()
+            print(f'Commit:{commit}')
+            
     case 'generate':
         if args.sprint:
             if args.dev:

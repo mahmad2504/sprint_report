@@ -1,8 +1,10 @@
-build
-run main.py "test_sprint_1"
+python app.py version --dev --verbose
+python app.py version  --verbose
 
-package
-report "test_sprint_1"
+python app.py build  --verbose
+python app.py release  --verbose
 
+python app.py generate --sprint "test sprint 2"  --verbose
+python app.py generate --sprint "test sprint 2" --dev --verbose
 
-python -m PyInstaller app.py --onefile
+sprint_report  generate --sprint "test sprint 2"
