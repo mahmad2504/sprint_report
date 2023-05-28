@@ -4,12 +4,11 @@ import argparse
 
 p={
 "image_name":"sprint_report",
-"commit":"main",
+"branch":"main",
 "docker_registry":"harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps",
 "code_repository":"https://github.com/mahmad2504/sprint_report.git"
 }
 
-#docker build . --build-arg COMMIT=%commit%  -t %image_name%
 
 try:
     f = open('parameters.json')
@@ -48,20 +47,35 @@ source_code=0
 if os.path.isfile("Dockerfile"):
    source_code=1
         
-commit=p["commit"]         
+branch=p["branch"]         
 code_repository=p["code_repository"]
 docker_registry=p["docker_registry"]
 image_name=p["image_name"]
 
-match args.target:
-    case 'build':
+if args.target=='build':
         if source_code==0:
             mprint("Source code not available. Unable to run this command",1)
             sys.exit()
-        cmd=f'docker   build . --build-arg COMMIT=main --build-arg CODE_REPOSITORY={code_repository} -t {image_name}'
+            
+        cmd=f'git rev-parse --verify HEAD'
+        mprint(cmd)
+        commit=os.popen(cmd).read()
+        commit=commit.replace("\n","")
+        
+        cmd=f'git rev-parse --abbrev-ref HEAD'
+        mprint(cmd)
+        branch=os.popen(cmd).read()
+        branch=branch.replace("\n","")
+       
+        mprint(f"Packaging for branch {branch} and commit {commit}",1)
+        cmd=f'git show -s --format=%B {commit}'
         mprint(cmd)
         os.system(cmd)
-    case 'release':
+        
+        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg BRANCH={branch}  --build-arg CODE_REPOSITORY={code_repository} -t {image_name}'
+        mprint(cmd)
+        os.system(cmd)
+if args.target == 'release':
         if source_code==0:
             mprint("Source code not available. Unable to run this command",1)
             sys.exit()
@@ -70,12 +84,18 @@ match args.target:
         mprint(cmd)
         commit=os.popen(cmd).read()
         commit=commit.replace("\n","")
-        mprint(f"Packaging for commit {commit}",1)
+        
+        cmd=f'git rev-parse --abbrev-ref HEAD'
+        mprint(cmd)
+        branch=os.popen(cmd).read()
+        branch=branch.replace("\n","")
+       
+        mprint(f"Packaging for branch {branch} and commit {commit}",1)
         cmd=f'git show -s --format=%B {commit}'
         mprint(cmd)
         os.system(cmd)
-        print(code_repository)
-        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg CODE_REPOSITORY={code_repository} --no-cache -t {image_name}'
+       
+        cmd=f'docker   build . --build-arg COMMIT={commit} --build-arg BRANCH={branch} --build-arg CODE_REPOSITORY={code_repository} --no-cache -t {image_name}'
         mprint(cmd)
         os.system(cmd)
         
@@ -85,37 +105,37 @@ match args.target:
         cmd=f'docker push {docker_registry}/{image_name}:latest'
         os.system(cmd)
         
-        cmd=f'python -m PyInstaller app.py --onefile --name sprint_report'
-        mprint(cmd)
-        os.system(cmd)
+        #cmd=f'python -m PyInstaller app.py --onefile --name jira_tj3'
+        #mprint(cmd)
+        #os.system(cmd)
         
         p["commit"]=commit
+        p["branch"]=branch
         with open('parameters.json', 'w') as f:
             json.dump(p, f)
             
-    case 'info':
-        if source_code==0:
-            mprint("Source code not available. Unable to run this command",1)
-            sys.exit()
-        cmd=f'git rev-parse --verify HEAD'
-        mprint(cmd)
-        commitid=os.popen(cmd).read()
-        print(commitid)
-        cmd=f'git show -s --format=%B {commitid}'
-        mprint(cmd)
-        os.system(cmd)
-    case 'version':
+if args.target == 'version':
         if args.dev:
-            f = open('parameters.json')
-            p = json.load(f)
-            print(f'Commit:{commit}')
+            if source_code==0:
+                mprint("Source code not available. Unable to run this command",1)
+                sys.exit()
+            cmd1=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest git rev-parse --verify HEAD'
+            cmd2=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest git rev-parse --abbrev-ref HEAD'
         else:
-            cmd=f'docker run -it --rm -w /src {docker_registry}/{image_name}:latest git rev-parse --verify HEAD'
-            mprint(cmd)
-            commit=os.popen(cmd).read()
-            print(f'Commit:{commit}')
+            cmd1=f'docker run -it --rm -w /src  {docker_registry}/{image_name}:latest git rev-parse --verify HEAD'
+            cmd2=f'docker run -it --rm -w /src -v {os.getcwd()}:/app {image_name}:latest git rev-parse --abbrev-ref HEAD'
             
-    case 'generate':
+        mprint(cmd1)
+        commit=os.popen(cmd1).read()
+        commit=commit.replace("\n","")
+        print(f'Commit:{commit}')
+        
+        mprint(cmd2)
+        branch=os.popen(cmd2).read()
+        branch=branch.replace("\n","")
+        print(f'Branch:{branch}')
+            
+if args.target == 'generate':
         if args.sprint and args.board:
             if args.dev:
                 if source_code==0:
@@ -131,5 +151,18 @@ match args.target:
                 os.system(cmd)
         else:
             mprint("sprint or boardid  missing",1)
+if args.target == 'terminal':
+        if args.dev:
+            if source_code==0:
+                mprint("Source code not available. Unable to run this command",1)
+                sys.exit()
+            else:
+                cmd=f'docker run -it --rm -w /app -v {os.getcwd()}:/app {image_name}:latest sh"'
+                mprint(cmd)
+                os.system(cmd)
+        else:
+            cmd=f'docker run -it --rm -w /src  {docker_registry}/{image_name}:latest sh"'
+            mprint(cmd)
+            os.system(cmd)
 
 

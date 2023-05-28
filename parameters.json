@@ -1,1 +1,1 @@
-{"image_name": "sprint_report", "commit": "a2e38e84d0a20f83fc0269de55eeb024fb6c351a", "docker_registry": "harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps", "code_repository": "https://github.com/mahmad2504/sprint_report.git"}
+{"image_name": "sprint_report", "branch": "main", "docker_registry": "harbor.xcr.svcs01eu.prod.eu-central-1.kaas.sws.siemens.com/eps", "code_repository": "https://github.com/mahmad2504/sprint_report.git", "commit": "0998e43328ed282239b64e464debe7d9b693a3c9"}
